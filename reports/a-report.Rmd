@@ -70,11 +70,122 @@ por_time = estimativas_raw %>%
     summarise(devs = NROW(unique(DeveloperID)), 
               erro_medio_abs = mean(abs(HoursEstimate - HoursActual)), 
               estimativas = n())
+
 ```
 
 
 ## Qual a relação entre as estimativas e horas reais tomadas na empresa como um todo e em diferentes categorias de tarefa?
 
+```{r}
+estimativas = estimativas_raw %>%
+    filter(StatusCode == "COMPLETED" | StatusCode == "FINISHED", !is.na(HoursEstimate), !is.na(HoursActual)) %>%
+        group_by(ProjectCode, TaskNumber, Category, Priority, Summary) %>%
+        summarise(
+            HoursEstimate = mean(HoursEstimate),
+            HoursActual = mean(HoursActual),
+            DeveloperPerformance = mean(DeveloperPerformance)
+        ) %>%
+        ungroup()
+
+estimativas %>% 
+     ggplot(aes(x = HoursEstimate, y = HoursActual)) + 
+     geom_point(color = "#7B68EE") +
+     geom_rug(alpha = .7,
+               color = "#9370DB",
+               sides = "l") +
+     labs(
+        title = "Relação entre as horas estimadas e as reais",
+        subtitle = "",
+        x = "Horas Estimadas",
+        y = "Horas Reais"
+     ) + 
+     scale_y_continuous(trans="log2")+
+     scale_x_continuous(trans="log2")
+
+estimativas %>%
+    filter(Category == "Development") %>%
+    ggplot(aes(x=HoursEstimate, y=HoursActual))+
+    geom_point(colour = "#A9A9A9") +
+    geom_rug(alpha = .7,
+               color = "#C0C0C0",
+               sides = "l") +
+    labs(
+        title = "Relação entre as horas estimadas e as reais ",
+        subtitle = "Categoria Development",
+        x = "Horas Estimadas",
+        y = "Horas Reais"
+      ) +
+    scale_y_continuous(trans="log2")+
+    scale_x_continuous(trans="log2")
+
+estimativas %>%
+    filter(Category == "Operational") %>%
+    ggplot(aes(x=HoursEstimate, y=HoursActual, colour=Category))+
+    geom_point(colour = "#00BFFF") +
+    geom_rug(alpha = .7,
+               color = "#87CEFA",
+               sides = "l") +
+    labs(
+        title = "Relação entre as horas estimadas e as reais ",
+        subtitle = "Categoria Operational",
+        x = "Horas Estimadas",
+        y = "Horas Reais"
+    ) +
+    scale_y_continuous(trans="log2")+
+    scale_x_continuous(trans="log2")
+
+estimativas %>%
+    filter(Category == "Management") %>%
+    ggplot(aes(x=HoursEstimate, y=HoursActual))+
+    geom_point(colour = "#FF6347") +
+    geom_rug(alpha = .7,
+               color = "#FF7F50",
+               sides = "l") +
+    labs(
+        title = "Relação entre as horas estimadas e as reais ",
+        subtitle = "Categoria Management",
+        x = "Horas Estimadas",
+        y = "Horas Reais"
+      ) +
+    scale_y_continuous(trans="log2")+
+    scale_x_continuous(trans="log2")
+
+estimativas %>%
+    group_by(Category) %>%
+    summarise(
+        pearson = cor(HoursEstimate, HoursActual, method = "pearson"), 
+        spearman = cor(HoursEstimate, HoursActual, method = "spearman"), 
+        kendall = cor(HoursEstimate, HoursActual, method = "kendall")
+    ) 
+
+```
+
 
 ## Equipes com mais desenvolvedores produzem estimativas com mais ou menos erro que equipes menores? 
 
+
+```{r}
+por_time = estimativas_raw %>% 
+    group_by(ProjectCode) %>% 
+    summarise(devs = NROW(unique(DeveloperID)), 
+              erro_medio_abs = mean(abs(HoursEstimate - HoursActual)), 
+              estimativas = n())
+
+por_time%>%
+    filter(erro_medio_abs< 15 ,!is.na(devs), !is.na(erro_medio_abs)) %>% 
+    ggplot(aes(x = devs, y = erro_medio_abs)) + 
+    geom_point(color = "#CD853F") + 
+    geom_rug(alpha = .7,
+               color = "#D2691E",
+               sides = "l") +
+    labs(
+        title = "Relação entre o número de desenvolvedores em uma equipe \n e a produção de estimativas com erros",
+        subtitle = "",
+        x = "Número de desenvolvedores",
+        y = "Erro médio absoluto"
+    ) + 
+    scale_x_log10() + 
+    scale_y_log10()
+    
+
+```

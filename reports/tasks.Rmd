@@ -1,0 +1,120 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+library(here)
+library(lubridate)
+library(dplyr)
+library(magrittr)
+library(plotly)
+source(here::here("code/lib.R"))
+```
+
+
+```{r read}
+estimativas_raw = read_projectdata()
+```
+
+## O que são os dados
+
+```{r}
+glimpse(estimativas_raw)
+```
+
+
+```{r}
+
+
+estimativas_raw %>% 
+  filter(HoursEstimate < 300, HoursActual< 600 ,!is.na(HoursEstimate), !is.na(HoursActual)) %>% 
+  mutate(Category = if_else(Category == "Development" & !is.na(Category), "Development", "Operational")) %>% 
+  group_by(TaskNumber)%>%
+  ggplot(aes(x = HoursEstimate, y = HoursActual)) + 
+  geom_point() 
+
+```
+
+```{r}
+
+estimativas_raw %>% 
+  filter(HoursEstimate < 300, HoursActual< 600 ,!is.na(HoursEstimate), !is.na(HoursActual)) %>% 
+  filter(Category == "Development")%>%
+  ggplot(aes(x = HoursEstimate, y = HoursActual)) + 
+  geom_point(color = "#FF6347") +
+  geom_rug(alpha = .7,
+           color = "#FF7F50",
+           sides = "l") +
+  labs(
+    title = "Relação entre as horas estimadas e as reais",
+    subtitle = "",
+    x = "Horas Estimadas",
+    y = "Horas Reais"
+  ) + 
+  scale_y_log10()+
+  scale_x_log10()
+
+```
+```{r}
+
+
+estimativas_raw %>% 
+  filter(HoursEstimate < 300, HoursActual< 600 ,!is.na(HoursEstimate), !is.na(HoursActual)) %>% 
+  filter(Category == "Operational")%>%
+  ggplot(aes(x = HoursEstimate, y = HoursActual)) + 
+  geom_point(color = "#33658A") +
+  geom_rug(alpha = .7,
+           color = "#2F4858",
+           sides = "l") +
+  labs(
+    title = "Relação entre as horas estimadas e as reais",
+    subtitle = "",
+    x = "Horas Estimadas",
+    y = "Horas Reais"
+  ) + 
+  scale_y_log10()+
+  scale_x_continuous(trans="log2")
+
+```
+
+```{r}
+por_time = estimativas_raw %>% 
+    group_by(ProjectCode) %>% 
+    summarise(devs = NROW(unique(DeveloperID)), 
+              erro_medio_abs = mean(abs(HoursEstimate - HoursActual)), 
+              estimativas = n())%>%
+
+por_time%>%
+    ggplot(por_time, aes(x = erro_medio_abs, y = devs)) + 
+    geom_point(color = "#33658A") 
+
+```
+
+
+
+```{r}
+estimativas = estimativas_raw %>%
+    group_by(ProjectCode, TaskNumber, Category, Priority, Summary) %>%
+    summarise(
+        HoursEstimate = mean(HoursEstimate),
+        HoursActual = mean(HoursActual),
+        DeveloperPerformance = mean(DeveloperPerformance)
+) %>%
+  filter(HoursEstimate < 300, HoursActual< 600 ,!is.na(HoursEstimate), !is.na(HoursActual)) %>% 
+  filter(Category == "Operational")%>%
+  ggplot(aes(x = HoursEstimate, y = HoursActual)) + 
+  geom_point(color = "#33658A") 
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
