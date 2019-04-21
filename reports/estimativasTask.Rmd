@@ -20,33 +20,6 @@ knitr::opts_chunk$set(tidy = FALSE,
 estimativas_raw = read_projectdata()
 ```
 
-## O que são os dados
-
-```{r}
-glimpse(estimativas_raw)
-```
-
-## Entendendo os dados
-
-```{r}
-estimativas_raw %>% 
-    select(ProjectCode, TaskNumber, HoursEstimate, HoursActual) %>% 
-    skimr::skim()
-```
-
-Temos 20 projetos, com 12299 estimativas_raw. Não há apenas uma estimativa por tarefa, já que há apenas 10266 valores distintos de `TaskNumber`.
-
-```{r}
-estimativas_raw %>% 
-    group_by(TaskNumber) %>% 
-    mutate(estimativas = n()) %>% 
-    filter(estimativas > 1) %>% 
-    count(TaskNumber, sort = T)
-```
-
-### 1 estimativa por task
-
-Para nossa análise, usaremos uma estimativa por task. Caso haja mais de uma usaremos a média das estimativas_raw:
 
 ```{r}
 estimativas = estimativas_raw %>%
@@ -169,14 +142,16 @@ estimativas %>%
 
 ```
 
-    Para responder a primeira pergunta, analisamos o primeiro gráfico que relaciona as horas estimadas com as horas reais para uma dada empresa. Nota-se uma grande concentração de pontos entre 1 e 16 horas reias e estimadas. Observa-se a distribuição dos pontos em formato de uma reta ascendente, comprovada com os altos valores para os métodos de Spearman e Kendall. Existe uma forte relação entre as horas estimadas e as horas reias, mostrando que no geral, o erro médio entre a estimativa e as horas reais não é tão grande.
-    A divisão por categorias segue mais ou menos o mesmo padrão encontrado para o todo, grande concentração entre 1 e 16 hrs, com um erro médio moderado. Destaca-se a relação entre estimativa e horas reais para a categoria Operacional, ela é a que possui o maior coeficiente liner entre todas as categorias. Conclui-se que tasks da categoria operacional são melhor estimadas.  
+    Para responder a primeira pergunta, analisamos o primeiro gráfico que relaciona as horas estimadas com as horas reais para uma dada empresa. Nota-se uma grande concentração de pontos entre 1 e 16 horas reais e estimadas. Observa-se a distribuição dos pontos em formato de uma reta ascendente, comprovada com os altos valores para os métodos de Spearman e Kendall. Existe uma forte relação entre as horas estimadas e as horas reais, mostrando que no geral, o erro médio entre a estimativa e as horas reais não é tão grande.
+    A divisão por categorias segue mais ou menos o mesmo padrão encontrado para o todo, grande concentração entre 1 e 16 horas, com um erro médio moderado. Destaca-se a relação entre estimativa e horas reais para a categoria Operacional, ela é a que possui o maior coeficiente linear entre todas as categorias. Conclui-se que tasks da categoria operacional são melhor estimadas.
+  
 
 
 ## Equipes com mais desenvolvedores produzem estimativas com mais ou menos erro que equipes menores? 
 
 
-    Nessa segunda questão, agrupamos as tasks pelo ProjectCode. Foi feito o calculo do erro médio da estimativa por equipes levando em consideração a diferença entre horas estimadas e horas reais. Foi contabilizado também o número de desenvolvedores por equipe. Por fim, filtrei os dados com erro médio menor que 15 e descartei os que não possuiam dados de número de desenvolvedores e erro médio.
+    Nessa segunda questão, agrupamos as tasks pelo ProjectCode. Foi feito o cálculo do erro médio da estimativa por equipes levando em consideração a diferença entre horas estimadas e horas reais. Foi contabilizado também o número de desenvolvedores por equipe. Por fim, filtrei os dados com erro médio menor que 15 e descartei os que não possuíam dados de número de desenvolvedores e erro médio.
+
 
 
 ```{r}
@@ -213,4 +188,4 @@ por_time %>%
 
 ```
 
-    Após o tratamento dos dados, restaram apenas 16 equipes para realização da análise dos dados. Nota-se uma moderada dispersão dos pontos no gráfico, comprovada pelos baixos valores nos cálculos para coeficiente angular nos três métodos. Observa-se que o erro médio absoluto é maior para equipes com número de desenvolvedores entre 8 e 16, porém o número de equipes com mais desenvolvedores é maior. Conclue-se portanto que equipes com maior número de desenvolvedores tendem a produzir estimativas com mais erros.
+    Após o tratamento dos dados, restaram apenas 16 equipes para realização da análise dos dados. Nota-se uma moderada dispersão dos pontos no gráfico, comprovada pelos baixos valores nos cálculos para coeficiente angular nos três métodos. Observa-se que o erro médio absoluto é maior para equipes com número de desenvolvedores entre 8 e 16, porém o número de equipes com mais desenvolvedores é maior. Conclui-se portanto que equipes com maior número de desenvolvedores tendem a produzir estimativas com mais erros.
